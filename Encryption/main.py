@@ -1,3 +1,7 @@
+import numpy as np
+from functools import reduce
+
+
 class Encryption:
     def __init__(self):
         self.hex_string = ""
@@ -16,29 +20,39 @@ class Encryption:
             [hex_list[i + j:i + j + 4] for j in range(0, 16, 4)]
             for i in range(0, len(hex_list), 16)
         ]  # Convert into multiple 4x4 matrices
+    
+    def matrix_multiplication(self, matrices):
+        def mat_mult(A, B):
+            print(f"A: {A}")
+            print(f"B: {B}")
+            return (np.matmul(A, B)) % 256
+        return reduce(mat_mult, matrices)
 
     def single_matrix_operations(self, matrices):
-        print(f"matrices: {matrices}")
+        # print(f"matrices: {matrices}")
         # apply transpose of matrix
         matrices = [list(map(list, zip(*matrix))) for matrix in matrices]
         print(f"transpose matrices: {matrices}")
 
         # Shift Rows
         for matrix in matrices:
-            print(f"Original Matrix: {matrix}")
+            # print(f"Original Matrix: {matrix}")
             for i, row in enumerate(matrix):
-                print(f"matrix[{i}]: {row}")
+                # print(f"matrix[{i}]: {row}")
                 if i == 1:
                     matrix[i] = [row[-1]] + row[:-1]
                 elif i == 2:
                     row[0], row[2] = row[2], row[0]
                 elif i == 3:
                     matrix[i] = row[1:] + [row[0]]
-            print(f"Modified Matrix: {matrix}\n")
-
+            # print(f"Modified Matrix: {matrix}\n")
+        self.matrices = matrices
+        print(f"matrices: {matrices}")
         # matrix Multiplication
-        for matrix in matrices:
-            pass
+        matrices = [[list(map(int, row)) for row in matrix] for matrix in matrices]
+        result = self.matrix_multiplication(matrices)
+        print(f"result: {result}")
+
 
     def round_matrix_operation(self):
         for _ in range(9):
@@ -52,5 +66,6 @@ if __name__ == "__main__":
 
     encryption.string_to_hex(plain_text)
     encryption.conversion_into_matrices()
+    print(f"initial matrices: {encryption.matrices}")
     encryption.round_matrix_operation()
     print(f"final matrices: {encryption.matrices}")
