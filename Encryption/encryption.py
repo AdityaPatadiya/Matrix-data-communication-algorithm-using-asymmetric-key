@@ -23,14 +23,11 @@ class Encryption:
         self.matrices = matrices
         print(f"matrices: {matrices}")
 
-        # matrix Multiplication
-        result = matrix_multiplication(matrices)
-        print(f"result: {result}")
-
-
     def round_matrix_operation(self):
         for _ in range(9):
             self.single_matrix_operations(self.matrices)
+            result = matrix_multiplication(self.matrices)
+            print(f"result: {result}")
             print("=================================================")
 
 
