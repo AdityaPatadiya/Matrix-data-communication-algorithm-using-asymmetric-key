@@ -1,12 +1,15 @@
 import numpy as np
 from functools import reduce
 
+from utils import apply_random_operations
+
 
 class Encryption:
     def __init__(self):
         self.hex_string = ""
         self.matrices = []
         self.MATRIX_SIZES = [2, 3, 4, 6]
+        # self.operation_sequences = []
 
     def string_to_hex(self, string):
         """Convert a string into hex representation."""
@@ -67,20 +70,22 @@ class Encryption:
 
     def single_matrix_operations(self, matrices):
         # apply transpose of matrix
-        matrices = [list(map(list, zip(*matrix))) for matrix in matrices]
-        print(f"transpose matrices: {matrices}")
+        # matrices = [list(map(list, zip(*matrix))) for matrix in matrices]
+        # print(f"transpose matrices: {matrices}")
 
-        # Shift Rows
-        for matrix in matrices:
-            for i, row in enumerate(matrix):
-                if i == 1:
-                    matrix[i] = [row[-1]] + row[:-1]
-                elif i == 2:
-                    row[0], row[2] = row[2], row[0]
-                elif i == 3:
-                    matrix[i] = row[1:] + [row[0]]
-        self.matrices = matrices
-        print(f"matrices: {matrices}")
+        # # Shift Rows
+        # for matrix in matrices:
+        #     for i, row in enumerate(matrix):
+        #         if i == 1:
+        #             matrix[i] = [row[-1]] + row[:-1]
+        #         elif i == 2:
+        #             row[0], row[2] = row[2], row[0]
+        #         elif i == 3:
+        #             matrix[i] = row[1:] + [row[0]]
+        # self.matrices = matrices
+        # print(f"matrices: {matrices}")
+        print("method called.")
+        self.matrices = [apply_random_operations(matrix) for matrix in matrices]
 
     def round_matrix_operation(self):
         for _ in range(9):
@@ -91,12 +96,15 @@ class Encryption:
 
 
 if __name__ == "__main__":
-    encryption = Encryption()
+    enc = Encryption()
     plain_text = input("Enter the string: ")
 
-    hex_string = encryption.string_to_hex(plain_text)
+    hex_string = enc.string_to_hex(plain_text)
     hex_list = [hex_string[i:i+2] for i in range(0, len(hex_string), 2)]
-    matrices = encryption.conversion_into_matrices(hex_list)
-    result_matrix = encryption.matrix_multiplication(matrices)
+    matrices = enc.conversion_into_matrices(hex_list)
+    # result_matrix = encryption.matrix_multiplication(matrices)
     # encryption.round_matrix_operation()
-    print(f"final matrices: {encryption.matrices}")
+    enc.single_matrix_operations(matrices)
+    for matrix in enc.matrices:
+        print(matrix)
+    # print("\nResultant Matrix:\n", result_matrix)
