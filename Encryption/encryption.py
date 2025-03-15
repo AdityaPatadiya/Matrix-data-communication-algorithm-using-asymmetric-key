@@ -14,6 +14,7 @@ class Encryption:
     def string_to_hex(self, string):
         """Convert a string into hex representation."""
         hex_string = ''.join([hex(ord(char))[2:].zfill(2) for char in string])
+        print(f"hex string: {hex_string}\n")
         return hex_string
 
     def choose_matrix_size(self, data_length):
@@ -28,6 +29,7 @@ class Encryption:
         padding_needed = block_size**2 - len(hex_list)
         padding_value = hex(padding_needed)[2:].zfill(2)  # PKCS#7 padding
         hex_list.extend([padding_value] * padding_needed)
+        print(f"padding value: {padding_value}\n")
         return hex_list
 
     def split_blocks(self, hex_list, block_size):
@@ -40,6 +42,7 @@ class Encryption:
                 block = self.apply_pkcs7_padding(block, block_size)
             blocks.append(block)
             i += block_size**2
+        print(f"blocks: {blocks}\n")
         return blocks
 
     def conversion_into_matrices(self, hex_list):
@@ -69,22 +72,6 @@ class Encryption:
         return reduce(mat_mult, matrices)
 
     def single_matrix_operations(self, matrices):
-        # apply transpose of matrix
-        # matrices = [list(map(list, zip(*matrix))) for matrix in matrices]
-        # print(f"transpose matrices: {matrices}")
-
-        # # Shift Rows
-        # for matrix in matrices:
-        #     for i, row in enumerate(matrix):
-        #         if i == 1:
-        #             matrix[i] = [row[-1]] + row[:-1]
-        #         elif i == 2:
-        #             row[0], row[2] = row[2], row[0]
-        #         elif i == 3:
-        #             matrix[i] = row[1:] + [row[0]]
-        # self.matrices = matrices
-        # print(f"matrices: {matrices}")
-        print("method called.")
         self.matrices = [apply_random_operations(matrix) for matrix in matrices]
 
     def round_matrix_operation(self):
