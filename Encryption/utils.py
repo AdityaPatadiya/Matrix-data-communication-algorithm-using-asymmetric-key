@@ -1,15 +1,15 @@
 import numpy as np
 import random
 
-# operation_map = {
-#     "circular_shift_row": 1,
-#     "circular_shift_column": 2,
-#     "row_permutation": 3,
-#     "column_permutation": 4,
-#     "transpose": 5,
-#     "modular_exponentiation": 6,
-#     "lwe_noise": 7
-# }
+operation_map = {
+    "circular_shift_row": 1,
+    "circular_shift_column": 2,
+    "row_permutation": 3,
+    "column_permutation": 4,
+    "transpose": 5,
+    "modular_exponentiation": 6,
+    "lwe_noise": 7
+}
 
 def modular_exponentiation(matrix, exponent=3, mod=256):
     """Apply modular exponentiation to each element in the matrix."""
@@ -54,12 +54,12 @@ def apply_random_operations(matrix):
         random.choice(non_linear_operations)
     ]
 
-    # operation_sequence = []
-    # for operation in selected_operations:
-    #     matrix = operation(matrix)
-    #     operation_sequence.append(operation_map[operation.__name__])
-
+    operation_sequence = []
     for operation in selected_operations:
         matrix = operation(matrix)
+        operation_sequence.append(operation_map[operation.__name__])
 
-    return matrix
+    # for operation in selected_operations:
+    #     matrix = operation(matrix)
+
+    return matrix, operation_sequence

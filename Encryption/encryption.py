@@ -9,7 +9,7 @@ class Encryption:
         self.hex_string = ""
         self.matrices = []
         self.MATRIX_SIZES = [2, 3, 4, 6]
-        # self.operation_sequences = []
+        self.operation_sequences = []
 
     def string_to_hex(self, string):
         """Convert a string into hex representation."""
@@ -72,7 +72,12 @@ class Encryption:
         return reduce(mat_mult, matrices)
 
     def single_matrix_operations(self, matrices):
-        self.matrices = [apply_random_operations(matrix) for matrix in matrices]
+        self.matrices = []
+        self.operation_sequences = []
+        for matrix in matrices:
+            modified_matrix, operations = apply_random_operations(matrix)
+            self.matrices.append(modified_matrix)
+            self.operation_sequences.append(operations)
 
     def round_matrix_operation(self):
         for _ in range(9):
@@ -94,4 +99,8 @@ if __name__ == "__main__":
     enc.single_matrix_operations(matrices)
     for matrix in enc.matrices:
         print(matrix)
+
+    for i, matrix in enumerate(enc.matrices):
+            print(f"\nMatrix {i+1} after operations:\n{matrix}")
+            print(f"Matrix {i+1} applied operations: {', '.join(map(str, enc.operation_sequences[i]))}")
     # print("\nResultant Matrix:\n", result_matrix)
