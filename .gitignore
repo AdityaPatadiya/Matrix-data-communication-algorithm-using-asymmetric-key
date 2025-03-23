@@ -3,3 +3,10 @@ public_key.pem
 notes.md
 venv
 gnatt_chart.py
+.python-version
+venv3.11
+liboqs
+kyber_public_key.bin
+kyber_secret_key.bin
+secret_key.pem
+Encrypted_data.json

@@ -1,5 +1,7 @@
 import hashlib
 import secrets
+import json
+import os
 
 import sys
 sys.path.append('/home/aditya/matrix_data_communication_algo/Matrix-data-communication-algorithm-using-asymmetric-key/')
@@ -30,12 +32,25 @@ class main:
     def storing_random_values(self):
         self.random_values["padding"] = self.enc.padding
         self.random_values["matrix_operations"] = self.storing_operation_values()
-        self.db.insert_data(self.message_id, self.enc.hex_string, self.random_values["padding"], self.random_values["matrix_operations"])
-        print("Data successfully stored in database.")
 
     def data_store(self):
         self.storing_random_values()
         self.data[self.message_id] = self.random_values
+        # self.db.insert_data(self.message_id, self.random_values["padding"], self.random_values["matrix_operations"])
+        # print("Data successfully stored in database.")
+        if os.path.exists("Encrypted_data.json"):
+            with open("Encrypted_data.json", 'r') as file:
+                try:
+                    existing_data = json.load(file)
+                except json.JSONDecodeError:
+                    existing_data = {}
+        else:
+            existing_data = {}
+        existing_data[self.message_id] = self.random_values
+        with open("Encrypted_data.json", 'w') as file:
+            json.dump(existing_data, file, indent=4)
+
+        print("✅ Data successfully stored in JSON file.")
 
     def main(self):
         plain_text = input("Enter the string: ")

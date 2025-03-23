@@ -29,8 +29,8 @@ def lwe_noise(matrix, noise_scale=5):
     """Apply Learning With Errors (LWE) noise to the matrix."""
     noise = np.array([[secrets.randbelow(2 * noise_scale + 1) - noise_scale for _ in range(matrix.shape[1])]
                       for _ in range(matrix.shape[0])])
-    print(f"noise: {noise}")
-    return np.mod(matrix + noise, 256), noise
+    print(f"noise: {noise.tolist()}")
+    return np.mod(matrix + noise, 256), noise.tolist()
 
 
 def circular_shift_row(matrix, direction='left'):
@@ -72,8 +72,6 @@ def apply_random_operations(matrix):
     non_linear_operations = [modular_exponentiation, lwe_noise]
 
     selected_operations = [
-        secrets.choice(linear_operations),
-        secrets.choice(non_linear_operations),
         secrets.choice(linear_operations),
         secrets.choice(non_linear_operations)
     ]
