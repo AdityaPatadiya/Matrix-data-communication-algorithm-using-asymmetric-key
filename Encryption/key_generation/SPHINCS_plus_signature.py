@@ -58,5 +58,5 @@ def add_signature(matrix):
     print("\n✅ SPHINCS+ Signature Generated and Appended!")
     print(f"Signed Matrix Shape: {signed_matrix.shape}")
 
-    # np.set_printoptions(threshold=np.inf)
+    np.set_printoptions(threshold=np.inf)
     return signed_matrix

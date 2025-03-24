@@ -86,10 +86,3 @@ class Encryption:
             modified_matrix, operations = apply_random_operations(matrix)
             self.matrices.append(modified_matrix)
             self.operation_sequences.append(operations)
-
-    # def round_matrix_operation(self):
-    #     for _ in range(9):
-    #         self.single_matrix_operations(self.matrices)
-    #         result = self.matrix_multiplication(self.matrices)
-    #         # print(f"result: {result}")
-    #         # print("=================================================")

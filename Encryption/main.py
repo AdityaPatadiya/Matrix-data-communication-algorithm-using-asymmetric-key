@@ -8,6 +8,7 @@ sys.path.append('/home/aditya/matrix_data_communication_algo/Matrix-data-communi
 from database import Database
 from encryption import Encryption
 from key_generation.SPHINCS_plus_signature import add_signature
+from key_generation import key_generation_enryption
 
 
 class main:
@@ -39,8 +40,8 @@ class main:
         self.data[self.message_id] = self.random_values
         # self.db.insert_data(self.message_id, self.random_values["padding"], self.random_values["matrix_operations"])
         # print("Data successfully stored in database.")
-        if os.path.exists("Encrypted_data.json"):
-            with open("Encrypted_data.json", 'r') as file:
+        if os.path.exists("Data_utils.json"):
+            with open("Data_utils.json", 'r') as file:
                 try:
                     existing_data = json.load(file)
                 except json.JSONDecodeError:
@@ -48,10 +49,19 @@ class main:
         else:
             existing_data = {}
         existing_data[self.message_id] = self.random_values
-        with open("Encrypted_data.json", 'w') as file:
+        with open("Data_utils.json", 'w') as file:
             json.dump(existing_data, file, indent=4)
 
         print("✅ Data successfully stored in JSON file.")
+
+    def encrypted_data(self, signed_matrix):
+        signed_matrix_list = signed_matrix.tolist()
+        existing_data = {}
+        existing_data[self.message_id] = signed_matrix_list
+        with open("Encrypted_data.json", 'w') as file:
+            json.dump(existing_data, file, indent=4, separators=(",", ": "))
+
+        print("✅ Encrypted data successfully stored in JSON file.")
 
     def main(self):
         plain_text = input("Enter the string: ")
@@ -69,11 +79,13 @@ class main:
         result_matrix = self.enc.matrix_multiplication(self.enc.matrices)
 
         print("\nResultant Matrix:\n", result_matrix)
+        aes_encrypted_matrix = key_generation_enryption.aes_encrypt(result_matrix)
+        print(f"aes_encrypted_matrix: {aes_encrypted_matrix}")
         signed_matrix = add_signature(result_matrix)
-        print(f"signed_matrix: {signed_matrix}")
 
         print("\n======================== Final data stored ========================")
         self.data_store()
+        self.encrypted_data(signed_matrix)
         print(self.data)
         # self.db.close_connection()
 
