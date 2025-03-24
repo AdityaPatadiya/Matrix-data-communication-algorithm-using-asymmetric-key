@@ -7,6 +7,7 @@ import sys
 sys.path.append('/home/aditya/matrix_data_communication_algo/Matrix-data-communication-algorithm-using-asymmetric-key/')
 from database import Database
 from encryption import Encryption
+from key_generation.SPHINCS_plus_signature import add_signature
 
 
 class main:
@@ -68,11 +69,13 @@ class main:
         result_matrix = self.enc.matrix_multiplication(self.enc.matrices)
 
         print("\nResultant Matrix:\n", result_matrix)
+        signed_matrix = add_signature(result_matrix)
+        print(f"signed_matrix: {signed_matrix}")
 
         print("\n======================== Final data stored ========================")
         self.data_store()
         print(self.data)
-        self.db.close_connection()
+        # self.db.close_connection()
 
 
 if __name__ == "__main__":
