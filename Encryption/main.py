@@ -8,7 +8,7 @@ sys.path.append('/home/aditya/matrix_data_communication_algo/Matrix-data-communi
 from database import Database
 from encryption import Encryption
 from key_generation.SPHINCS_plus_signature import add_signature
-from key_generation import key_generation_enryption
+from key_generation.key_generation_enryption import encryption_and_decryption
 
 
 class main:
@@ -18,6 +18,7 @@ class main:
         self.data = {}
         self.enc = Encryption()
         self.db = Database()
+        self.enc_and_dec_key = encryption_and_decryption()
 
     def generate_message_id(self, message: str) -> str:
         """Generate a unique ID for each message using SHA-256 and a random salt."""
@@ -79,7 +80,9 @@ class main:
         result_matrix = self.enc.matrix_multiplication(self.enc.matrices)
 
         print("\nResultant Matrix:\n", result_matrix)
-        aes_encrypted_matrix = key_generation_enryption.aes_encrypt(result_matrix)
+        aes_encrypted_matrix = self.enc_and_dec_key.aes_encrypt(result_matrix)
+        print("\n======================== Key Encryption ========================")
+        self.enc_and_dec_key.generate_kyber_keypair(self.message_id)
         print(f"aes_encrypted_matrix: {aes_encrypted_matrix}")
         signed_matrix = add_signature(result_matrix)
 
