@@ -26,12 +26,20 @@ def add_signature(matrix):
         print("❌ Failed to initialize SPHINCS+")
         exit(1)
 
-    # Generate Keypair
-    public_key = (ctypes.c_ubyte * PUBLIC_KEY_LENGTH)()
-    secret_key = (ctypes.c_ubyte * SECRET_KEY_LENGTH)()
-    if oqs.OQS_SIG_keypair(sig, public_key, secret_key) != 0:
-        print("❌ Key generation failed")
+    # Load Public and Private Keys from Files
+    try:
+        with open("Encryption/key_generation/sphincs_public_key.pem", "rb") as pub_file:
+            public_key_bytes = pub_file.read()
+
+        with open("Encryption/key_generation/sphincs_private_key.pem", "rb") as priv_file:
+            secret_key_bytes = priv_file.read()
+    except FileNotFoundError:
+        print("❌ Key files not found! Generate keys first.")
         exit(1)
+
+    # convert keys to ctypes format
+    public_key = (ctypes.c_ubyte * PUBLIC_KEY_LENGTH).from_buffer_copy(public_key_bytes)
+    secret_key = (ctypes.c_ubyte * SECRET_KEY_LENGTH).from_buffer_copy(secret_key_bytes)
 
     # Assume final_matrix is your last matrix (Example: 4x4)
     final_matrix = matrix  # Replace with your real matrix

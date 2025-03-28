@@ -81,9 +81,9 @@ class main:
 
         print("\nResultant Matrix:\n", result_matrix)
         aes_encrypted_matrix = self.enc_and_dec_key.aes_encrypt(result_matrix)
-        print("\n======================== Key Encryption ========================")
-        self.enc_and_dec_key.generate_kyber_keypair(self.message_id)
         print(f"aes_encrypted_matrix: {aes_encrypted_matrix}")
+        print("\n======================== Key Encryption ========================")
+        self.enc_and_dec_key.kyber_encrypt(self.message_id)
         signed_matrix = add_signature(result_matrix)
 
         print("\n======================== Final data stored ========================")
