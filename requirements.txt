@@ -1,0 +1,5 @@
+python=3.11.11
+
+secrets
+numpy
+pycryptodome==3.18.0
