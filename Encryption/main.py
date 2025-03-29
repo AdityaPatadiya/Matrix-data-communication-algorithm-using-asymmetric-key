@@ -80,7 +80,7 @@ class main:
         result_matrix = self.enc.matrix_multiplication(self.enc.matrices)
 
         print("\nResultant Matrix:\n", result_matrix)
-        aes_encrypted_matrix = self.enc_and_dec_key.aes_encrypt(result_matrix)
+        aes_encrypted_matrix = self.enc_and_dec_key.aes_encrypt(result_matrix, self.message_id)
         print(f"aes_encrypted_matrix: {aes_encrypted_matrix}")
         print("\n======================== Key Encryption ========================")
         self.enc_and_dec_key.kyber_encrypt(self.message_id)
