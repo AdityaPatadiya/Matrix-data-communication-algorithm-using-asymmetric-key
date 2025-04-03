@@ -85,6 +85,7 @@ class main:
         print("\n======================== Key Encryption ========================")
         self.enc_and_dec_key.kyber_encrypt(self.message_id)
         signed_matrix = add_signature(result_matrix)
+        print(signed_matrix)
 
         print("\n======================== Final data stored ========================")
         self.data_store()
