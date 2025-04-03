@@ -1,6 +1,5 @@
 import numpy as np
 import secrets
-from functools import reduce
 
 from utils import apply_random_operations
 
@@ -69,15 +68,19 @@ class Encryption:
         print("======================== operations used for matrices. ========================")
         return matrices
 
-    def matrix_multiplication(self, matrices):
-        """Perform chained matrix multiplication with proper dimensions."""
-        if len(matrices) == 1:
-            return matrices[0]
+    def merge_matrices(self, matrices):
+        """Merge multiple matrices by concatenating corresponding elements with ','."""
+        merged_matrix = np.full(matrices[0].shape, "", dtype=object)
 
-        def mat_mult(A, B):
-            return np.mod(np.matmul(A, B), 256)
+        for matrix in matrices:
+            for i in range(matrix.shape[0]):
+                for j in range(matrix.shape[1]):
+                    if merged_matrix[i, j] == "":
+                        merged_matrix[i, j] = str(matrix[i, j])
+                    else:
+                        merged_matrix[i, j] += "," + str(matrix[i, j])
 
-        return reduce(mat_mult, matrices)
+        return merged_matrix
 
     def single_matrix_operations(self, matrices):
         self.matrices = []

@@ -77,7 +77,7 @@ class main:
         for matrix in self.enc.matrices:
             print(matrix)
 
-        result_matrix = self.enc.matrix_multiplication(self.enc.matrices)
+        result_matrix = self.enc.merge_matrices(self.enc.matrices)
 
         print("\nResultant Matrix:\n", result_matrix)
         aes_encrypted_matrix = self.enc_and_dec_key.aes_encrypt(result_matrix, self.message_id)
