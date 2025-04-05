@@ -1,7 +1,8 @@
 import ctypes
+import base64
 import numpy as np
 
-def add_signature(matrix):
+def add_signature(encrypted_matrix):
     # Load liboqs
     oqs = ctypes.CDLL("liboqs.so")
 
@@ -17,7 +18,7 @@ def add_signature(matrix):
     oqs.OQS_SIG_keypair.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_ubyte)]
     oqs.OQS_SIG_keypair.restype = ctypes.c_int
     oqs.OQS_SIG_sign.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_size_t),
-                                ctypes.POINTER(ctypes.c_ubyte), ctypes.c_size_t, ctypes.POINTER(ctypes.c_ubyte)]
+                                 ctypes.POINTER(ctypes.c_ubyte), ctypes.c_size_t, ctypes.POINTER(ctypes.c_ubyte)]
     oqs.OQS_SIG_sign.restype = ctypes.c_int
 
     # Initialize SPHINCS+
@@ -37,34 +38,32 @@ def add_signature(matrix):
         print("❌ Key files not found! Generate keys first.")
         exit(1)
 
-    # convert keys to ctypes format
+    # Convert keys to ctypes format
     public_key = (ctypes.c_ubyte * PUBLIC_KEY_LENGTH).from_buffer_copy(public_key_bytes)
     secret_key = (ctypes.c_ubyte * SECRET_KEY_LENGTH).from_buffer_copy(secret_key_bytes)
 
-    # Assume final_matrix is your last matrix (Example: 4x4)
-    final_matrix = matrix  # Replace with your real matrix
-
-    # Convert matrix to bytes
-    matrix_bytes = final_matrix.tobytes()
+    # 👉 Combine ciphertext + nonce + tag to sign
+    data_to_sign = encrypted_matrix["ciphertext"] + encrypted_matrix["nonce"] + encrypted_matrix["tag"]
 
     # Allocate memory for signature
     signature = (ctypes.c_ubyte * SIGNATURE_LENGTH)()
     signature_len = ctypes.c_size_t()
 
-    # Sign the matrix
+    # Sign the matrix (data)
     if oqs.OQS_SIG_sign(sig, signature, ctypes.byref(signature_len),
-                        (ctypes.c_ubyte * len(matrix_bytes))(*matrix_bytes), len(matrix_bytes), secret_key) != 0:
+                        (ctypes.c_ubyte * len(data_to_sign))(*data_to_sign), len(data_to_sign), secret_key) != 0:
         print("❌ Signing failed")
         exit(1)
 
-    # Append the signature to the matrix
-    signed_matrix = np.concatenate((final_matrix.flatten(), np.frombuffer(signature, dtype=np.uint8)))
+    # 👉 Return the signed payload instead of NumPy concat
+    signed_payload = {
+        "encrypted_matrix": {
+            "ciphertext": base64.b64encode(encrypted_matrix["ciphertext"]).decode('utf-8'),
+            "nonce": base64.b64encode(encrypted_matrix["nonce"]).decode('utf-8'),
+            "tag": base64.b64encode(encrypted_matrix["tag"]).decode('utf-8')
+        },
+        "signature": bytes(signature[:signature_len.value]).hex()
+    }
 
-    # Reshape to store as a single-row matrix (if needed)
-    signed_matrix = signed_matrix.reshape(1, -1)  # 1 row, many columns
-
-    print("\n✅ SPHINCS+ Signature Generated and Appended!")
-    print(f"Signed Matrix Shape: {signed_matrix.shape}")
-
-    np.set_printoptions(threshold=np.inf)
-    return signed_matrix
+    print("\n✅ SPHINCS+ Signature Generated and Attached!")
+    return signed_payload

@@ -56,7 +56,7 @@ class main:
         print("✅ Data successfully stored in JSON file.")
 
     def encrypted_data(self, signed_matrix):
-        signed_matrix_list = signed_matrix.tolist()
+        signed_matrix_list = signed_matrix
         existing_data = {}
         existing_data[self.message_id] = signed_matrix_list
         with open("Encrypted_data.json", 'w') as file:
@@ -84,7 +84,7 @@ class main:
         print(f"aes_encrypted_matrix: {aes_encrypted_matrix}")
         print("\n======================== Key Encryption ========================")
         self.enc_and_dec_key.kyber_encrypt(self.message_id)
-        signed_matrix = add_signature(result_matrix)
+        signed_matrix = add_signature(aes_encrypted_matrix)
         print(signed_matrix)
 
         print("\n======================== Final data stored ========================")

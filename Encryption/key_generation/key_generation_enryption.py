@@ -33,7 +33,7 @@ class encryption_and_decryption:
         self.KYBER_PUBLIC_KEY_LENGTH = 1568
         self.KYBER_SECRET_KEY_LENGTH = 3168
 
-    def aes_encrypt(self, matrix, message_id):
+    def aes_encrypt(self, matrix):
         """Encrypts the given matrix using AES-256-GCM"""
         self.aes_key = get_random_bytes(32)  # 256-bit AES key
         nonce = get_random_bytes(12)  # 12-byte nonce for GCM
@@ -41,24 +41,6 @@ class encryption_and_decryption:
 
         matrix_bytes = matrix.tobytes()  # Convert matrix to bytes
         ciphertext, tag = cipher.encrypt_and_digest(matrix_bytes)  # Encrypt and generate authentication tag
-
-        if os.path.exists("AES_encrypted_data.json"):
-            with open("AES_encrypted_data.json", 'r') as file:
-                try:
-                    existing_data = json.load(file)
-                except json.JSONDecodeError:
-                    existing_data = {}
-        else:
-            existing_data = {}
-
-        existing_data[message_id] = {
-            "ciphertext": base64.b64encode(ciphertext).decode('utf-8'),
-            "nonce": base64.b64encode(nonce).decode('utf-8'),
-            "tag": base64.b64encode(tag).decode('utf-8')
-        }
-
-        with open("AES_encrypted_data.json", 'w') as file:
-            json.dump(existing_data, file, indent=4)
 
         return {
             "ciphertext": ciphertext,
