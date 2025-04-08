@@ -1,60 +1,115 @@
 import ctypes
 import base64
 import json
+import hashlib
 
-# Load SPHINCS+ shared library
-sphincs_lib = ctypes.CDLL("./libsphincs.so")  # Ensure this path is correct
 
-# SPHINCS+ Signature and Public Key Lengths
-SIGNATURE_LENGTH = 29792  # Adjust based on SPHINCS+ variant
-PUBLIC_KEY_LENGTH = 64  # Adjust based on your key type
+def load_raw_key_from_pem(pem_path):
+    """Extracts raw key bytes from a PEM-formatted key file."""
+    with open(pem_path, 'r') as f:
+        lines = f.readlines()
+    key_data = ''.join(line.strip() for line in lines if not line.startswith("-----"))
+    return base64.b64decode(key_data)
 
-def verify_sphincs_signature(signed_message):
-    """Verify the SPHINCS+ signature using ctypes."""
 
-    # Ensure signed_message is in bytes
-    if isinstance(signed_message, str):
-        signed_message = base64.b64decode(signed_message)  # Decode if it's a base64 string
+def verify_signature(message_id):
+    try:
+        oqs = ctypes.CDLL("liboqs.so")
+    except OSError:
+        print("❌ Failed to load liboqs.so. Make sure it's installed and in your library path.")
+        return
 
-    # Extract the last SIGNATURE_LENGTH bytes as the signature
-    signature = signed_message[-SIGNATURE_LENGTH:]
-    message = signed_message[:-SIGNATURE_LENGTH]
+    OQS_SIG_alg_sphincs_sha2_256s_simple = b"SPHINCS+-SHA2-256s-simple"
+    PUBLIC_KEY_LENGTH = 64  # For SPHINCS+-SHA2-256s-simple
 
-    # Read SPHINCS+ public key
-    with open("Encryption/key_generation/sphincs_public_key.pem", 'rb') as pub_file:
-        public_key = pub_file.read()
+    oqs.OQS_SIG_new.argtypes = [ctypes.c_char_p]
+    oqs.OQS_SIG_new.restype = ctypes.c_void_p
+    oqs.OQS_SIG_verify.argtypes = [
+        ctypes.c_void_p,
+        ctypes.POINTER(ctypes.c_ubyte), ctypes.c_size_t,
+        ctypes.POINTER(ctypes.c_ubyte), ctypes.c_size_t,
+        ctypes.POINTER(ctypes.c_ubyte)
+    ]
+    oqs.OQS_SIG_verify.restype = ctypes.c_int
 
-    # Convert data to ctypes
-    c_message = (ctypes.c_ubyte * len(message)).from_buffer_copy(message)
-    c_signature = (ctypes.c_ubyte * SIGNATURE_LENGTH).from_buffer_copy(signature)
-    c_public_key = (ctypes.c_ubyte * PUBLIC_KEY_LENGTH).from_buffer_copy(public_key)
+    sig = oqs.OQS_SIG_new(OQS_SIG_alg_sphincs_sha2_256s_simple)
+    if not sig:
+        print("❌ Failed to initialize SPHINCS+")
+        return
 
-    # Call the SPHINCS+ verification function from the C library
-    verify_func = sphincs_lib.sphincs_verify
-    verify_func.argtypes = [ctypes.POINTER(ctypes.c_ubyte), ctypes.c_size_t,
-                            ctypes.POINTER(ctypes.c_ubyte), ctypes.POINTER(ctypes.c_ubyte)]
-    verify_func.restype = ctypes.c_int
+    try:
+        public_key_bytes = load_raw_key_from_pem("Encryption/key_generation/sphincs_public_key.pem")
+        if len(public_key_bytes) != PUBLIC_KEY_LENGTH:
+            print(f"❌ Public key length mismatch. Expected {PUBLIC_KEY_LENGTH}, got {len(public_key_bytes)}")
+            return
+        public_key = (ctypes.c_ubyte * PUBLIC_KEY_LENGTH).from_buffer_copy(public_key_bytes)
+    except FileNotFoundError:
+        print("❌ Public key file not found!")
+        return
+    except Exception as e:
+        print(f"❌ Error loading public key: {str(e)}")
+        return
 
-    # Perform verification
-    result = verify_func(c_message, len(message), c_signature, c_public_key)
+    try:
+        with open("Encrypted_data.json", "r") as f:
+            messages_db = json.load(f)
+    except FileNotFoundError:
+        print("❌ Messages database not found!")
+        return
+    except json.JSONDecodeError:
+        print("❌ Invalid JSON in messages database!")
+        return
 
-    if result == 1:
-        print("✅ Signature verification successful! Message is authentic.")
-        return message  # Return the extracted message for decryption
+    # Find the specific message by ID
+    if message_id not in messages_db:
+        print(f"❌ Message ID {message_id} not found in database!")
+        return
+
+    signed_payload = messages_db[message_id]
+
+    # Decode components from Base64 with better error handling
+    try:
+        encrypted_matrix = signed_payload["encrypted_matrix"]
+        ciphertext = base64.b64decode(encrypted_matrix["ciphertext"])
+        nonce = base64.b64decode(encrypted_matrix["nonce"])
+        tag = base64.b64decode(encrypted_matrix["tag"])
+        signature = base64.b64decode(signed_payload["signature"])
+    except KeyError as e:
+        print(f"❌ Missing expected field in payload: {str(e)}")
+        return
+    except base64.binascii.Error as e:
+        print(f"❌ Base64 decoding error: {str(e)}")
+        return
+
+    # Reconstruct the signed data (must match exactly how it was signed)
+    data_to_verify = ciphertext + nonce + tag
+
+    print("\n🔍 Verification Details:")
+    print(f"Message ID: {message_id}")
+    print(f"Data Length: {len(data_to_verify)} bytes")
+    print(f"Data SHA256: {hashlib.sha256(data_to_verify).hexdigest()}")
+    print(f"Signature Length: {len(signature)} bytes")
+
+    # Prepare data for liboqs
+    message = (ctypes.c_ubyte * len(data_to_verify))(*data_to_verify)
+    signature_ct = (ctypes.c_ubyte * len(signature)).from_buffer_copy(signature)
+
+    # Verify signature
+    result = oqs.OQS_SIG_verify(
+        sig,
+        message, len(data_to_verify),
+        signature_ct, len(signature),
+        public_key
+    )
+
+    if result == 0:
+        print("\n✅ SPHINCS+ Signature Verified Successfully!")
+        return True
     else:
-        raise ValueError("❌ Signature verification failed! Message may be tampered with.")
+        print("\n❌ SPHINCS+ Signature Verification Failed!")
+        return False
 
-# Read the signed message from the encrypted data file
-with open("Encrypted_data.json", 'r') as file:
-    data = json.load(file)
-
-# Assuming the message is stored under a message ID and is base64-encoded
-message_id = list(data.keys())[0]  # Get first message ID
-signed_message = data[message_id]["final_ciphertext"]  # Adjust key name if needed
-
-# Verify the signature
-try:
-    extracted_message = verify_sphincs_signature(signed_message)
-    print("Extracted Message (After Signature Verification):", extracted_message)
-except ValueError as e:
-    print(e)
+# Example usage
+if __name__ == "__main__":
+    message_id = input("Enter message ID to verify: ").strip()
+    verify_signature(message_id)

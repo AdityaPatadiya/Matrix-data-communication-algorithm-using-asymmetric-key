@@ -1,6 +1,7 @@
 import ctypes
 import base64
 import numpy as np
+import hashlib
 
 def add_signature(encrypted_matrix):
     # Load liboqs
@@ -29,11 +30,16 @@ def add_signature(encrypted_matrix):
 
     # Load Public and Private Keys from Files
     try:
-        with open("Encryption/key_generation/sphincs_public_key.pem", "rb") as pub_file:
-            public_key_bytes = pub_file.read()
+        def load_raw_key_from_pem(pem_path):
+            """Extracts raw key bytes from a PEM-formatted key file."""
+            with open(pem_path, 'r') as f:
+                lines = f.readlines()
+            key_data = ''.join(line.strip() for line in lines if not line.startswith("-----"))
+            return base64.b64decode(key_data)
 
-        with open("Encryption/key_generation/sphincs_private_key.pem", "rb") as priv_file:
-            secret_key_bytes = priv_file.read()
+        # Now use it to load keys correctly
+        public_key_bytes = load_raw_key_from_pem("Encryption/key_generation/sphincs_public_key.pem")
+        secret_key_bytes = load_raw_key_from_pem("Encryption/key_generation/sphincs_private_key.pem")
     except FileNotFoundError:
         print("❌ Key files not found! Generate keys first.")
         exit(1)
@@ -49,6 +55,9 @@ def add_signature(encrypted_matrix):
     signature = (ctypes.c_ubyte * SIGNATURE_LENGTH)()
     signature_len = ctypes.c_size_t()
 
+    print("🔐 Signing Data Length:", len(data_to_sign))
+    print("🔐 Signing Data SHA256:", hashlib.sha256(data_to_sign).hexdigest())
+
     # Sign the matrix (data)
     if oqs.OQS_SIG_sign(sig, signature, ctypes.byref(signature_len),
                         (ctypes.c_ubyte * len(data_to_sign))(*data_to_sign), len(data_to_sign), secret_key) != 0:
@@ -62,7 +71,7 @@ def add_signature(encrypted_matrix):
             "nonce": base64.b64encode(encrypted_matrix["nonce"]).decode('utf-8'),
             "tag": base64.b64encode(encrypted_matrix["tag"]).decode('utf-8')
         },
-        "signature": bytes(signature[:signature_len.value]).hex()
+        "signature": base64.b64encode(bytes(signature[:signature_len.value])).decode('utf-8')
     }
 
     print("\n✅ SPHINCS+ Signature Generated and Attached!")
