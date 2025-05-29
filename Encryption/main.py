@@ -2,10 +2,9 @@ import hashlib
 import secrets
 import json
 import os
-
 import sys
 sys.path.append('/home/aditya/matrix_data_communication_algo/Matrix-data-communication-algorithm-using-asymmetric-key/')
-from database import Database
+
 from encryption import Encryption
 from key_generation.SPHINCS_plus_signature import add_signature
 from key_generation.key_generation_enryption import encryption_and_decryption
@@ -17,7 +16,6 @@ class main:
         self.message_id = ""
         self.data = {}
         self.enc = Encryption()
-        self.db = Database()
         self.enc_and_dec_key = encryption_and_decryption()
 
     def generate_message_id(self, message: str) -> str:
