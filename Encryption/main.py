@@ -78,11 +78,9 @@ class main:
         result_matrix = self.enc.merge_matrices(self.enc.matrices)
 
         print("\nResultant Matrix:\n", result_matrix)
-        aes_encrypted_matrix = self.enc_and_dec_key.aes_encrypt(result_matrix)
-        print(f"aes_encrypted_matrix: {aes_encrypted_matrix}")
-        print("\n======================== Key Encryption ========================")
-        self.enc_and_dec_key.kyber_encrypt(self.message_id)
-        signed_matrix = add_signature(aes_encrypted_matrix)
+        print("\n======================== AES Encryption and Key Encapsulation ========================")
+        encrypted_data = self.enc_and_dec_key.kyber_encrypt(result_matrix, self.message_id)
+        signed_matrix = add_signature(encrypted_data)
         print(signed_matrix)
 
         print("\n======================== Final data stored ========================")
