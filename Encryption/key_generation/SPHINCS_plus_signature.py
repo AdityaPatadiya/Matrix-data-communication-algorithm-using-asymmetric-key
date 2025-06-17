@@ -49,7 +49,7 @@ def add_signature(encrypted_data):
     secret_key = (ctypes.c_ubyte * SECRET_KEY_LENGTH).from_buffer_copy(secret_key_bytes)
 
     # 👉 Combine ciphertext + nonce + tag to sign
-    data_to_sign = encrypted_data["kyber_ciphertext"] + encrypted_data["aes_ciphertext"] + encrypted_data["aes_nonce"] + encrypted_data["aes_tag"]
+    data_to_sign = encrypted_data["kyber_ciphertext"] + encrypted_data["aes_ciphertext"] + encrypted_data["nonce"] + encrypted_data["tag"]
 
     # Allocate memory for signature
     signature = (ctypes.c_ubyte * SIGNATURE_LENGTH)()
@@ -69,8 +69,8 @@ def add_signature(encrypted_data):
         "encrypted_data": {
             "kyber_ciphertext": base64.b64encode(encrypted_data["kyber_ciphertext"]).decode('utf-8'),
             "aes_ciphertext": base64.b64encode(encrypted_data["aes_ciphertext"]).decode('utf-8'),
-            "nonce": base64.b64encode(encrypted_data["aes_nonce"]).decode('utf-8'),
-            "tag": base64.b64encode(encrypted_data["aes_tag"]).decode('utf-8'),
+            "nonce": base64.b64encode(encrypted_data["nonce"]).decode('utf-8'),
+            "tag": base64.b64encode(encrypted_data["tag"]).decode('utf-8'),
         },
         "signature": base64.b64encode(bytes(signature[:signature_len.value])).decode('utf-8')
     }

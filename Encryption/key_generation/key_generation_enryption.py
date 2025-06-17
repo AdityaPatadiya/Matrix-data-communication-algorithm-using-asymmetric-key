@@ -119,8 +119,8 @@ class encryption_and_decryption:
         return {
             "kyber_ciphertext": bytes(ciphertext),
             "aes_ciphertext": aes_data["ciphertext"],
-            "aes_nonce": aes_data["nonce"],
-            "aes_tag": aes_data["tag"],
+            "nonce": aes_data["nonce"],
+            "tag": aes_data["tag"],
         }
 
     def kyber_decrypt(self, kem, ciphertext, private_key):

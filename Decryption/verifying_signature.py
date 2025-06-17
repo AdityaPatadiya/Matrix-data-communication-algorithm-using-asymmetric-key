@@ -2,6 +2,7 @@ import ctypes
 import base64
 import json
 import hashlib
+import binascii
 
 
 def load_raw_key_from_pem(pem_path):
@@ -69,20 +70,21 @@ def verify_signature(message_id):
 
     # Decode components from Base64 with better error handling
     try:
-        encrypted_matrix = signed_payload["encrypted_matrix"]
-        ciphertext = base64.b64decode(encrypted_matrix["ciphertext"])
-        nonce = base64.b64decode(encrypted_matrix["nonce"])
-        tag = base64.b64decode(encrypted_matrix["tag"])
+        encrypted_data = signed_payload["encrypted_data"]
+        kyber_ciphertext = base64.b64decode(encrypted_data["kyber_ciphertext"])
+        aes_ciphertext = base64.b64decode(encrypted_data["aes_ciphertext"])
+        nonce = base64.b64decode(encrypted_data["nonce"])
+        tag = base64.b64decode(encrypted_data["tag"])
         signature = base64.b64decode(signed_payload["signature"])
     except KeyError as e:
         print(f"❌ Missing expected field in payload: {str(e)}")
         return
-    except base64.binascii.Error as e:
+    except binascii.Error as e:
         print(f"❌ Base64 decoding error: {str(e)}")
         return
 
     # Reconstruct the signed data (must match exactly how it was signed)
-    data_to_verify = ciphertext + nonce + tag
+    data_to_verify = kyber_ciphertext + aes_ciphertext + nonce + tag
 
     print("\n🔍 Verification Details:")
     print(f"Message ID: {message_id}")
