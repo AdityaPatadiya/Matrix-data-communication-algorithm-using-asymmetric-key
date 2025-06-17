@@ -6,9 +6,9 @@ import json
 import os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from Encryption.key_generation.key_generation_enryption import encryption_and_decryption
+from Encryption.key_generation.key_generation_enryption import encryption
 
-enc_dec = encryption_and_decryption()
+enc_dec = encryption()
 
 oqs = ctypes.CDLL("liboqs.so")
 
@@ -30,28 +30,22 @@ oqs.OQS_KEM_decaps.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_ubyte), 
 oqs.OQS_KEM_decaps.restype = ctypes.c_int
 
 
-def encryted_data_decryption(message_id):
-    """ 
-    Retrieve encrypted data by messageId, 
-    decapsulate AES key with Kyber, 
-    and decrypt ciphertext with AES-GCM.
-    """
-    if not os.path.exists("Encrypted_data.json"):
-        raise FileNotFoundError("❌ Encrypted_data.json not found.")
-        
-    with open("Encrypted_data.json", "r") as f:
-        encrypted_file = json.load(f)
+def kyber_decrypt(message_id):
+    """Decapsulate AES key and decrypt the ciphertext using it."""
+    if not os.path.exists("keys.json"):
+        raise FileNotFoundError("❌ keys.json not found.")
+    with open("keys.json", "r") as file:
+        encrypted_file = json.load(file)
 
     if message_id not in encrypted_file:
-        raise KeyError(f"❌ messageId {message_id} not found in Encrypted_data.")
-        
-    encrypted_data = encrypted_file[message_id]["encrypted_data"]
+        raise KeyError(f"❌ messageId {message_id} not found in keys.")
+    encrypted_data = encrypted_file[message_id]
 
     # Base64-decoding first
     kyber_ciphertext = base64.b64decode(encrypted_data["kyber_ciphertext"])
     aes_ciphertext = base64.b64decode(encrypted_data["aes_ciphertext"])
-    nonce = base64.b64decode(encrypted_data["nonce"])
-    tag = base64.b64decode(encrypted_data["tag"])
+    nonce = base64.b64decode(encrypted_data["aes_nonce"])
+    tag = base64.b64decode(encrypted_data["aes_tag"])
 
     # Loading private key
     _, private_key = enc_dec.load_kyber_keys()
@@ -71,8 +65,7 @@ def encryted_data_decryption(message_id):
     cipher = AES.new(aes_key, AES.MODE_GCM, nonce=nonce)
     plaintext = cipher.decrypt_and_verify(aes_ciphertext, tag)
 
-    return plaintext
+    decoded_json_string = plaintext.decode('utf-8')
+    recovered_data = json.loads(decoded_json_string)
 
-
-message_id = input("Enter the message ID to decrypt: ")
-encryted_data_decryption(message_id)
+    return recovered_data

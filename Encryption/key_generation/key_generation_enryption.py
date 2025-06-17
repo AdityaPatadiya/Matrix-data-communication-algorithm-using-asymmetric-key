@@ -27,7 +27,7 @@ oqs.OQS_KEM_decaps.argtypes = [ctypes.c_void_p, ctypes.POINTER(ctypes.c_ubyte), 
 oqs.OQS_KEM_decaps.restype = ctypes.c_int
 
 
-class encryption_and_decryption:
+class encryption:
     def __init__(self):
         self.aes_key = b""
         self.KYBER_PUBLIC_KEY_LENGTH = 1568
@@ -37,9 +37,15 @@ class encryption_and_decryption:
         """Encrypts the given matrix using AES-256-GCM"""
         nonce = get_random_bytes(12)  # 12-byte nonce for GCM
         cipher = AES.new(self.aes_key, AES.MODE_GCM, nonce=nonce)
+        if isinstance(matrix, np.ndarray):
+            matrix_as_list = matrix.tolist()
+        else:
+            matrix_as_list = matrix
 
-        matrix_bytes = matrix.tobytes()  # Convert matrix to bytes
-        ciphertext, tag = cipher.encrypt_and_digest(matrix_bytes)  # Encrypt and generate authentication tag
+        json_string = json.dumps(matrix_as_list)
+
+        bytes_data = json_string.encode('utf-8')
+        ciphertext, tag = cipher.encrypt_and_digest(bytes_data)  # Encrypt and generate authentication tag
 
         return {
             "ciphertext": ciphertext,
@@ -48,35 +54,33 @@ class encryption_and_decryption:
             "aes_key": self.aes_key
         }
 
-    def aes_decrypt(self, encrypted_data, key, original_shape):
-        """Decrypts the AES-256-GCM encrypted data"""
-        cipher = AES.new(key, AES.MODE_GCM, nonce=encrypted_data["nonce"])
-        plaintext = cipher.decrypt_and_verify(encrypted_data["ciphertext"], encrypted_data["tag"])
-        return np.frombuffer(plaintext, dtype=np.uint8).reshape(original_shape)
+    def load_raw_key_from_pem(self, pem_path):
+        """Extracts raw key bytes from a PEM-formatted key file."""
+        with open(pem_path, 'rb') as f:
+            data = f.read()
+        # Extract base64 payload between headers
+        start_tag = b"-----BEGIN "
+        end_tag = b"-----END "
+        start_idx = data.find(b"\n", data.find(start_tag)) + 1
+        end_idx = data.rfind(end_tag, start_idx)
+        key_data = b"".join(data[start_idx:end_idx].splitlines())
+        return base64.b64decode(key_data)
 
     def load_kyber_keys(self):
-        """Load the existing Kyber public and private keys and convert them to ctypes format."""
-
+        """Properly load PEM-formatted keys"""
         pub_key_path = "Encryption/key_generation/kyber_public_key.pem"
         priv_key_path = "Encryption/key_generation/kyber_secret_key.pem"
 
         if not os.path.exists(pub_key_path) or not os.path.exists(priv_key_path):
             raise FileNotFoundError("❌ Kyber key files not found!")
 
-        print("🔑 Loading existing Kyber key pair...")
+        public_key_bytes = self.load_raw_key_from_pem(pub_key_path)
+        private_key_bytes = self.load_raw_key_from_pem(priv_key_path)
 
-        # Read keys as raw binary data
-        with open(pub_key_path, "rb") as pub_file:
-            public_key_bytes = pub_file.read()
-
-        with open(priv_key_path, "rb") as priv_file:
-            private_key_bytes = priv_file.read()
-
-        # Convert to ctypes format
+        # Convert to ctypes
         public_key = (ctypes.c_ubyte * self.KYBER_PUBLIC_KEY_LENGTH).from_buffer_copy(public_key_bytes)
         private_key = (ctypes.c_ubyte * self.KYBER_SECRET_KEY_LENGTH).from_buffer_copy(private_key_bytes)
 
-        print("✅ Kyber keys loaded successfully.")
         return public_key, private_key
 
     def kyber_encrypt(self, message_matrix, message_id):
@@ -108,7 +112,6 @@ class encryption_and_decryption:
 
         existing_data[message_id] = {
             "kyber_ciphertext": base64.b64encode(ciphertext).decode('utf-8'),
-            "aes_key": base64.b64encode(shared_secret).decode('utf-8'),  # for demonstration
             "aes_ciphertext": base64.b64encode(aes_data["ciphertext"]).decode('utf-8'),
             "aes_nonce": base64.b64encode(aes_data["nonce"]).decode('utf-8'),
             "aes_tag": base64.b64encode(aes_data["tag"]).decode('utf-8'),
@@ -122,11 +125,3 @@ class encryption_and_decryption:
             "nonce": aes_data["nonce"],
             "tag": aes_data["tag"],
         }
-
-    def kyber_decrypt(self, kem, ciphertext, private_key):
-        """Decrypt an AES key using Kyber"""
-        shared_secret = (ctypes.c_ubyte * 32)()  # AES key buffer
-
-        oqs.OQS_KEM_decaps(kem, shared_secret, ciphertext, private_key)
-
-        return bytes(shared_secret)  # Returns the original AES key

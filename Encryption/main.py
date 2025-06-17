@@ -7,7 +7,7 @@ sys.path.append('/home/aditya/matrix_data_communication_algo/Matrix-data-communi
 
 from encryption import Encryption
 from key_generation.SPHINCS_plus_signature import add_signature
-from key_generation.key_generation_enryption import encryption_and_decryption
+from key_generation.key_generation_enryption import encryption
 
 
 class main:
@@ -16,7 +16,7 @@ class main:
         self.message_id = ""
         self.data = {}
         self.enc = Encryption()
-        self.enc_and_dec_key = encryption_and_decryption()
+        self.enc_and_dec_key = encryption()
 
     def generate_message_id(self, message: str) -> str:
         """Generate a unique ID for each message using SHA-256 and a random salt."""
