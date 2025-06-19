@@ -6,7 +6,7 @@ import json
 import os, sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from Encryption.key_generation.key_generation_enryption import encryption
+from Encryption.key_generation.Encryption_Encapsulation import encryption
 
 enc_dec = encryption()
 

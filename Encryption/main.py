@@ -5,9 +5,9 @@ import os
 import sys
 sys.path.append('/home/aditya/matrix_data_communication_algo/Matrix-data-communication-algorithm-using-asymmetric-key/')
 
-from encryption import Encryption
+from String_Obfucation import Encryption
 from key_generation.SPHINCS_plus_signature import add_signature
-from key_generation.key_generation_enryption import encryption
+from key_generation.Encryption_Encapsulation import encryption
 
 
 class main:
