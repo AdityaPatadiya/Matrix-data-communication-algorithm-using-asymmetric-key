@@ -22,7 +22,7 @@ class Key_Generation():
         with open(filename, "w") as f:
             f.write(pem_content)
 
-    def kyber_key_generation(self):
+    def kyber_key_generation(self, save_file:str):
         # Define constants
         OQS_KEM_alg_kyber_1024 = b"Kyber1024"
         PUBLIC_KEY_LENGTH = 1568
@@ -52,15 +52,19 @@ class Key_Generation():
         # Convert keys to bytes
         public_key_bytes = bytes(public_key)
         secret_key_bytes = bytes(secret_key)
-        # Save keys in PEM format
-        self.save_pem_file("Encryption/key_generation/kyber_public_key.pem", public_key_bytes, "KYBER PUBLIC KEY")
-        self.save_pem_file("Encryption/key_generation/kyber_secret_key.pem", secret_key_bytes, "KYBER PRIVATE KEY")
+        if save_file.lower() == "y":
+            # Save keys in PEM format
+            self.save_pem_file("Encryption/key_generation/kyber_public_key.pem", public_key_bytes, "KYBER PUBLIC KEY")
+            self.save_pem_file("Encryption/key_generation/kyber_secret_key.pem", secret_key_bytes, "KYBER PRIVATE KEY")
 
-        print("✅ Kyber-1024 Key Generation Successful!")
-        print("Public Key Saved: kyber_public_key.pem")
-        print("Secret Key Saved: kyber_secret_key.pem")
+            print("✅ Kyber-1024 Key Generation Successful!")
+            print("Public Key Saved: kyber_public_key.pem")
+            print("Secret Key Saved: kyber_secret_key.pem")
+        else:
+            print("Keys generated.")
+            print(f"public key: {public_key}\nprivate key: {secret_key}")
 
-    def generate_signature_keys(self):
+    def generate_signature_keys(self, save_file:str):
         ALG_NAME = b"SPHINCS+-SHA2-256s-simple"
         PUBLIC_KEY_LEN = 64
         SECRET_KEY_LEN = 128
@@ -89,11 +93,19 @@ class Key_Generation():
         res = self.oqs.OQS_SIG_keypair(sig, public_key, private_key)
         if res != 0:
             raise Exception("SPHINCS+ keypair generation failed.")
+    
+        # base64_public_key = base64.b64encode(public_key).decode('utf-8')
+        # base64_private_key = base64.b64encode(private_key).decode('utf-8')
 
-        self.save_pem_file("Encryption/key_generation/sphincs_public_key.pem", public_key, "PUBLIC")
-        self.save_pem_file("Encryption/key_generation/sphincs_private_key.pem", private_key, "PRIVATE")
+        if save_file.lower() == "y":
+            self.save_pem_file("Encryption/key_generation/sphincs_public_key.pem", public_key, "PUBLIC")
+            self.save_pem_file("Encryption/key_generation/sphincs_private_key.pem", private_key, "PRIVATE")
+        else:
+            print("keys generated.")
+            print(f"public key: {public_key}\nprivate key:{private_key}")
+            return public_key, private_key
 
 
 key_gnr = Key_Generation()
-key_gnr.kyber_key_generation()
-key_gnr.generate_signature_keys()
+# key_gnr.kyber_key_generation("Y")
+key_gnr.generate_signature_keys("n")
