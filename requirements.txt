@@ -1,6 +1,6 @@
 # python==3.11.11
 
-secrets
 numpy
 pycryptodome==3.19.1
 sympy
+mysql-connector-python

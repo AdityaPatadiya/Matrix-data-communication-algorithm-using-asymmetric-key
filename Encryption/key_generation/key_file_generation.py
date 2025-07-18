@@ -106,6 +106,6 @@ class Key_Generation():
             return public_key, private_key
 
 
-key_gnr = Key_Generation()
+# key_gnr = Key_Generation()
 # key_gnr.kyber_key_generation("Y")
-key_gnr.generate_signature_keys("n")
+# key_gnr.generate_signature_keys("y")
