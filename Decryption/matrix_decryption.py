@@ -62,4 +62,4 @@ class matrix_decryption:
 
 
 matrix_dec = matrix_decryption()
-matrix_dec.split_matrix(np.array([['0,119', '57,101', '193,102'], ['233,232', '33,101', '0,200'], ['0,109', '33,119', '0,101']]))
+matrix_dec.split_matrix(np.array([['107,0', '72,33', '106,225'], ['37,0', '101,0', '74,0'], ['114,193', '116,0', '110,241']]))
