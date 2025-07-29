@@ -5,17 +5,17 @@ import os
 import sys
 sys.path.append('/home/aditya/matrix_data_communication_algo/Matrix-data-communication-algorithm-using-asymmetric-key/')
 
-from String_Obfucation import Encryption
-from key_generation.SPHINCS_plus_signature import add_signature
-from key_generation.Encryption_Encapsulation import encryption
+from Encryption.String_Obfucation import stringObfucate
+from Encryption.key_generation.SPHINCS_plus_signature import add_signature
+from Encryption.key_generation.Encryption_Encapsulation import encryption
 
 
-class main:
+class encryptionMain:
     def __init__(self):
         self.random_values = {}
         self.message_id = ""
         self.data = {}
-        self.enc = Encryption()
+        self.enc = stringObfucate()
         self.enc_and_dec_key = encryption()
 
     def generate_message_id(self, message: str) -> str:
@@ -62,8 +62,8 @@ class main:
 
         print("✅ Encrypted data successfully stored in JSON file.")
 
-    def main(self):
-        plain_text = input("Enter the string: ")
+    def main(self, message=None):
+        plain_text = message if message else input("Enter the string: ")
         self.generate_message_id(plain_text)
 
         hex_string = self.enc.string_to_hex(plain_text)
@@ -88,8 +88,9 @@ class main:
         self.encrypted_data(signed_matrix)
         print(self.data)
         # self.db.close_connection()
+        return signed_matrix
 
 
-if __name__ == "__main__":
-    main_program = main()
-    main_program.main()
+# if __name__ == "__main__":
+#     main_program = main()
+#     main_program.main()

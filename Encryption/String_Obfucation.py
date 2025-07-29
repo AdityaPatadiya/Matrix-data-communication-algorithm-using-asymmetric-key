@@ -1,10 +1,10 @@
 import numpy as np
 import secrets
 
-from utils import apply_random_operations
+from Encryption.utils import apply_random_operations
 
 
-class Encryption:
+class stringObfucate:
     def __init__(self):
         self.hex_string = ""
         self.matrices = []
