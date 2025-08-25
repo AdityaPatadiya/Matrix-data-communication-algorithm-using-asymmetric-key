@@ -91,6 +91,6 @@ class encryptionMain:
         return signed_matrix
 
 
-# if __name__ == "__main__":
-#     main_program = main()
-#     main_program.main()
+if __name__ == "__main__":
+    main_program = encryptionMain()
+    main_program.main()
